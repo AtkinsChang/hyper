@@ -105,8 +105,9 @@ impl AddrIncoming {
         }
         self.timeout = None;
 
+        let mut accept = self.listener.accept();
         loop {
-            match Pin::new(&mut self.listener).poll_accept(cx) {
+            match unsafe { Pin::new_unchecked(&mut accept) }.poll(cx) {
                 Poll::Ready(Ok((socket, addr))) => {
                     if let Some(dur) = self.tcp_keepalive_timeout {
                         if let Err(e) = socket.set_keepalive(Some(dur)) {

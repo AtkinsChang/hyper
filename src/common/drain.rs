@@ -99,7 +99,8 @@ where
         loop {
             match mem::replace(&mut me.state, State::Draining) {
                 State::Watch(on_drain) => {
-                    match me.watch.rx.poll_ref(cx) {
+                    let mut recv = me.watch.rx.recv_ref();
+                    match unsafe { Pin::new_unchecked(&mut recv) }.poll(cx) {
                         Poll::Ready(None) => {
                             // Drain has been triggered!
                             on_drain(unsafe { Pin::new_unchecked(&mut me.future) });
@@ -242,4 +243,3 @@ mod tests {
     }
     */
 }
-
